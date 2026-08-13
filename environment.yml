@@ -1,0 +1,32 @@
+name: tfm-flights-core
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - jupyterlab=4.3
+  - notebook=7.3
+  - ipykernel=6.29
+  - ipywidgets=8.1
+
+  - pandas=2.2.3
+  - numpy=1.26.4
+  - scipy=1.14.1
+  - pyarrow=18.1.0
+  - openpyxl=3.1.5
+
+  - matplotlib=3.9
+  - plotly=5.24
+
+  - scikit-learn=1.5.2
+  - statsmodels=0.14.4
+
+  - sqlalchemy=2.0
+  - pymysql=1.1
+
+  - tqdm=4.67
+  - joblib=1.4
+  - python-dotenv=1.0
+
+  - pip
