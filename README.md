@@ -6,16 +6,17 @@ El objetivo del proyecto es analizar el comportamiento histórico de los vuelos 
 
 ## Fuente de datos
 
-Los datos utilizados proceden del Bureau of Transportation Statistics (BTS), concretamente del conjunto de datos de puntualidad de vuelos.
+Los datos utilizados en este proyecto proceden del Bureau of Transportation Statistics (BTS) del Departamento de Transporte de Estados Unidos, concretamente del conjunto de datos de puntualidad de vuelos (On-Time Performance).
+
+Fuente oficial: Bureau of Transportation Statistics — Download On-Time Data
+
+Desde esta fuente se descargan los archivos históricos utilizados para construir el conjunto de datos del proyecto.
 
 La capa original de datos se mantiene sin modificaciones dentro de:
 
-```text
 data/raw/
-```
 
-Por razones de tamaño y reproducibilidad, los archivos de datos no se almacenan en GitHub.
-
+Por razones de tamaño y reproducibilidad, los archivos de datos originales y procesados no se almacenan en GitHub. El repositorio contiene el código necesario para realizar su ingesta, validación, transformación y preparación.
 ## Estructura del proyecto
 
 ```text
