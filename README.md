@@ -1,888 +1,445 @@
 # TFM — Flight Delay Analysis
 
-# Trabajo Fin de Máster desarrollado en el Máster en Big Data, Data Science e Inteligencia Artificial.
+Trabajo Fin de Máster desarrollado en el Máster en Big Data, Data Science e Inteligencia Artificial.
 
-# 
+El proyecto aborda el análisis y la predicción temprana de retrasos en vuelos comerciales de Estados Unidos a partir de información histórica del Bureau of Transportation Statistics (BTS).
 
-# El proyecto aborda el análisis y la predicción temprana de retrasos en vuelos comerciales de Estados Unidos a partir de información histórica del Bureau of Transportation Statistics (BTS).
+El objetivo principal es construir y evaluar un sistema de alerta temprana capaz de identificar vuelos con riesgo elevado de retraso utilizando exclusivamente información disponible antes de la operación del vuelo.
 
-# 
+El proyecto comprende el ciclo completo de un problema de ciencia de datos: ingesta y preparación de datos, análisis exploratorio, modelado predictivo, evaluación temporal, análisis operativo, visualización, reproducibilidad y despliegue de un prototipo web.
 
-# El objetivo principal es construir y evaluar un sistema de alerta temprana capaz de identificar vuelos con riesgo elevado de retraso utilizando exclusivamente información disponible antes de la operación del vuelo.
+---
 
-# 
+## Accesos principales
 
-# El proyecto comprende el ciclo completo de un problema de ciencia de datos: ingesta y preparación de datos, análisis exploratorio, modelado predictivo, evaluación temporal, análisis operativo, visualización, reproducibilidad y despliegue de un prototipo web.
+### ✈️ Aplicación de predicción
 
-# 
+[**Abrir sistema de alerta temprana**](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
 
-# \---
+La aplicación permite realizar predicciones individuales y masivas utilizando el modelo definitivo del TFM.
 
-# 
+No requiere instalación para su utilización mediante navegador.
 
-# \## Accesos principales
+### 📓 Notebooks
 
-# 
+El desarrollo analítico y metodológico se encuentra documentado en:
 
-# \### ✈️ Aplicación de predicción
+[**Acceder a los notebooks**](notebooks/)
 
-# 
+### 📖 Documentación de la aplicación
 
-# \[\*\*Abrir sistema de alerta temprana\*\*](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
+Las instrucciones de utilización y ejecución local están disponibles en:
 
-# 
+[**Documentación de la aplicación**](app/README.md)
 
-# La aplicación permite realizar predicciones individuales y masivas utilizando el modelo definitivo del TFM.
+---
 
-# 
+## Fuente de datos
 
-# No requiere instalación para su utilización mediante navegador.
+Los datos proceden del Bureau of Transportation Statistics (BTS) del Departamento de Transporte de Estados Unidos, concretamente del conjunto de datos Marketing Carrier On-Time Performance.
 
-# 
+Fuente oficial:
 
-# \### 📓 Notebooks
+[Bureau of Transportation Statistics — Download On-Time Data](https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGK&QO_fu146_anzr=b0-gvzr)
 
-# 
+El período utilizado en el proyecto comprende desde enero de 2022 hasta mayo de 2026.
 
-# El desarrollo analítico y metodológico se encuentra documentado en:
+El proceso de ingesta y preparación generó:
 
-# 
+- 32,761,129 registros procesados.
+- 45 variables en la capa analítica.
+- 354 archivos Parquet normalizados.
+- 0 errores de ingesta.
 
-# \[\*\*Acceder a los notebooks\*\*](notebooks/)
+Los datos originales y los productos analíticos de gran volumen no se almacenan en GitHub debido a su tamaño. El repositorio contiene el código, la metodología y los componentes necesarios para reproducir el flujo analítico.
 
-# 
+---
 
-# \### 📖 Documentación de la aplicación
+## Objetivo predictivo
 
-# 
+La variable objetivo es:
 
-# Las instrucciones de utilización y ejecución local están disponibles en:
+```text
+ARR_DEL15
+```
 
-# 
+Esta variable identifica si un vuelo llega a su destino con un retraso igual o superior a 15 minutos.
 
-# \[\*\*Documentación de la aplicación\*\*](app/README.md)
+El sistema se plantea como un mecanismo de alerta temprana. Por este motivo, las variables predictivas se restringen a información programada o disponible antes de la operación del vuelo, evitando incorporar información que solo puede conocerse posteriormente.
 
-# 
+Las variables utilizadas por el modelo definitivo son:
 
-# \---
+```text
+MONTH
+DAY_OF_WEEK
+MKT_UNIQUE_CARRIER
+OP_UNIQUE_CARRIER
+ORIGIN
+DEST
+DEP_TIME_BLK
+ARR_TIME_BLK
+CRS_ELAPSED_TIME
+DISTANCE
+```
 
-# 
+---
 
-# \## Fuente de datos
+## Diseño temporal de la evaluación
 
-# 
+Debido al carácter temporal del problema, la evaluación se realiza respetando estrictamente el orden cronológico de las observaciones.
 
-# Los datos proceden del Bureau of Transportation Statistics (BTS) del Departamento de Transporte de Estados Unidos, concretamente del conjunto de datos Marketing Carrier On-Time Performance.
+La estrategia definitiva es:
 
-# 
+```text
+2022 ─┐
+2023  ├── Desarrollo y entrenamiento
+2024 ─┘
+          ↓
+2025 ───── Validación temporal y selección
+          ↓
+2022–2025 ─ Entrenamiento del modelo definitivo
+          ↓
+Ene–May 2026 ─ Test externo
+```
 
-# Fuente oficial:
+Los datos de 2026 permanecen completamente separados durante la selección del modelo, hiperparámetros y umbral de decisión.
 
-# 
+Esta estrategia reproduce mejor el escenario real de aplicación: utilizar información histórica para generar predicciones sobre observaciones futuras.
 
-# \[Bureau of Transportation Statistics — Download On-Time Data](https://www.transtats.bts.gov/DL\_SelectFields.aspx?gnoyr\_VQ=FGK\&QO\_fu146\_anzr=b0-gvzr)
+---
 
-# 
+## Modelo definitivo
 
-# El período utilizado en el proyecto comprende desde enero de 2022 hasta mayo de 2026.
+El modelo seleccionado es una regresión logística regularizada.
 
-# 
+Configuración principal:
 
-# El proceso de ingesta y preparación generó:
+```text
+Modelo: Logistic Regression
+Penalty: L2
+C: 0.1
+Solver: saga
+Tolerance: 0.01
+Class weight: balanced
+Max iterations: 500
+Random state: 42
+```
 
-# 
+Después del preprocesamiento, el espacio predictivo contiene:
 
-# \- 32,761,129 registros procesados.
+```text
+853 variables transformadas
+```
 
-# \- 45 variables en la capa analítica.
+El desbalance de la variable objetivo se aborda mediante:
 
-# \- 354 archivos Parquet normalizados.
+```text
+class_weight="balanced"
+```
 
-# \- 0 errores de ingesta.
+---
 
-# 
+## Umbral de decisión
 
-# Los datos originales y los productos analíticos de gran volumen no se almacenan en GitHub debido a su tamaño. El repositorio contiene el código, la metodología y los componentes necesarios para reproducir el flujo analítico.
+El sistema no utiliza directamente el umbral convencional de `0.5`.
 
-# 
+El umbral definitivo fue seleccionado exclusivamente sobre la validación temporal de 2025:
 
-# \---
+```text
+0.406588
+```
 
-# 
+El criterio operativo prioriza alcanzar aproximadamente un `recall ≥ 0.80`, dado que el objetivo del sistema es identificar anticipadamente una proporción elevada de los vuelos que posteriormente experimentan retrasos.
 
-# \## Objetivo predictivo
+La puntuación generada por el modelo se presenta como:
 
-# 
+```text
+risk_score
+```
 
-# La variable objetivo es:
+Debe interpretarse como una puntuación relativa de riesgo y no como una probabilidad calibrada de retraso.
 
-# 
+---
 
-# ```text
+## Evaluación externa
 
-# ARR\_DEL15
+La evaluación final se realizó sobre un período completamente posterior al utilizado durante el desarrollo:
 
-# ```
+```text
+Enero–mayo de 2026
+```
 
-# 
+El test externo contiene:
 
-# Esta variable identifica si un vuelo llega a su destino con un retraso igual o superior a 15 minutos.
+```text
+3,102,447 vuelos
+```
 
-# 
+Resultados principales:
 
-# El sistema se plantea como un mecanismo de alerta temprana. Por este motivo, las variables predictivas se restringen a información programada o disponible antes de la operación del vuelo, evitando incorporar información que solo puede conocerse posteriormente.
+| Métrica | Resultado |
+|---|---:|
+| Accuracy | 0.4569 |
+| Precision | 0.2527 |
+| Recall | 0.7994 |
+| F1 | 0.3840 |
+| ROC-AUC | 0.6355 |
+| Average Precision | 0.3053 |
+| Tasa de alerta | 66.98 % |
 
-# 
+Matriz de confusión:
 
-# Las variables utilizadas por el modelo definitivo son:
+| | Predicción negativa | Predicción positiva |
+|---|---:|---:|
+| Real negativo | 892,540 | 1,553,063 |
+| Real positivo | 131,739 | 525,105 |
 
-# 
+El sistema identifica aproximadamente el 80 % de los retrasos observados, aunque requiere generar alertas sobre aproximadamente el 67 % de los vuelos.
 
-# ```text
+La elevada proporción de falsas alertas constituye una de las principales limitaciones del modelo y debe considerarse al interpretar su utilidad operativa.
 
-# MONTH
+---
 
-# DAY\_OF\_WEEK
+## Aplicación web
 
-# MKT\_UNIQUE\_CARRIER
+El modelo definitivo se encuentra integrado en una aplicación desarrollada con Streamlit.
 
-# OP\_UNIQUE\_CARRIER
+[**✈️ Probar el sistema predictivo**](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
 
-# ORIGIN
+La aplicación proporciona dos modalidades.
 
-# DEST
+### Predicción individual
 
-# DEP\_TIME\_BLK
+Permite introducir las características programadas de un vuelo y obtener:
 
-# ARR\_TIME\_BLK
+```text
+risk_score
+alert
+```
 
-# CRS\_ELAPSED\_TIME
+### Predicción masiva
 
-# DISTANCE
+Permite cargar múltiples observaciones mediante:
 
-# ```
+```text
+CSV
+Parquet
+```
 
-# 
+La aplicación proporciona una plantilla CSV compatible y permite descargar posteriormente los resultados generados.
 
-# \---
+Los detalles técnicos y las instrucciones para ejecutar la aplicación localmente se encuentran en:
 
-# 
+[app/README.md](app/README.md)
 
-# \## Diseño temporal de la evaluación
+---
 
-# 
+## Reproducibilidad de la inferencia
 
-# Debido al carácter temporal del problema, la evaluación se realiza respetando estrictamente el orden cronológico de las observaciones.
+La aplicación utiliza directamente los artefactos persistidos del modelo definitivo:
 
-# 
+```text
+app/artifacts/
+├── final_categorical_encoder_2022_2025.joblib
+├── final_numerical_scaler_2022_2025.joblib
+├── final_logistic_regression_2022_2025.joblib
+└── final_model_configuration.json
+```
 
-# La estrategia definitiva es:
+Esto permite ejecutar nuevas inferencias sin:
 
-# 
+- volver a entrenar el modelo;
+- repetir la selección de hiperparámetros;
+- recalcular el umbral;
+- disponer de los más de 32 millones de registros históricos.
 
-# ```text
+La reproducibilidad del procedimiento de inferencia fue comprobada utilizando observaciones persistidas del test externo, obteniendo coincidencia del 100 % en las decisiones de alerta.
 
-# 2022 ─┐
+---
 
-# 2023  ├── Desarrollo y entrenamiento
+## Visualización y análisis operativo
 
-# 2024 ─┘
+Los resultados del modelo se analizan desde distintas perspectivas:
 
-# &#x20;         ↓
+- comportamiento global;
+- evolución temporal;
+- franjas horarias;
+- aerolíneas;
+- aeropuertos;
+- concentración de falsos positivos;
+- concentración de falsos negativos;
+- intensidad de las alertas.
 
-# 2025 ───── Validación temporal y selección
+El proyecto incluye además una capa analítica específicamente preparada para su explotación mediante Power BI.
 
-# &#x20;         ↓
+La capa principal consolidada contiene:
 
-# 2022–2025 ─ Entrenamiento del modelo definitivo
+```text
+32,761,129 registros
+45 variables
+```
 
-# &#x20;         ↓
+y se complementa con tablas de referencia, resultados predictivos y agregados analíticos.
 
-# Ene–May 2026 ─ Test externo
+---
 
-# ```
+## Estructura general del proyecto
 
-# 
+```text
+TFM/
+│
+├── app/
+│   ├── app.py
+│   ├── README.md
+│   ├── requirements.txt
+│   └── artifacts/
+│
+├── config/
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   ├── rejected/
+│   └── reference/
+│
+├── docs/
+│
+├── notebooks/
+│
+├── results/
+│
+├── src/
+│
+├── environment.yml
+├── .gitignore
+└── README.md
+```
 
-# Los datos de 2026 permanecen completamente separados durante la selección del modelo, hiperparámetros y umbral de decisión.
+Las carpetas de datos y resultados de gran volumen se mantienen fuera del control de versiones cuando corresponde.
 
-# 
+Los artefactos mínimos necesarios para ejecutar la aplicación sí se incluyen en `app/artifacts/`.
 
-# Esta estrategia reproduce mejor el escenario real de aplicación: utilizar información histórica para generar predicciones sobre observaciones futuras.
+---
 
-# 
+## Flujo general del proyecto
 
-# \---
+```text
+Datos BTS
+    ↓
+Ingesta y validación
+    ↓
+Normalización y almacenamiento Parquet
+    ↓
+Análisis exploratorio
+    ↓
+Preparación del dataset de modelado
+    ↓
+Desarrollo y comparación de modelos
+    ↓
+Validación temporal 2025
+    ↓
+Selección del modelo y umbral
+    ↓
+Entrenamiento definitivo 2022–2025
+    ↓
+Evaluación externa 2026
+    ↓
+Análisis operativo
+    ↓
+Visualización y Power BI
+    ↓
+Reproducibilidad de inferencia
+    ↓
+Aplicación Streamlit
+```
 
-# 
+---
 
-# \## Modelo definitivo
+## Entorno de ejecución
 
-# 
+El entorno principal del proyecto se gestiona mediante Conda:
 
-# El modelo seleccionado es una regresión logística regularizada.
+```bash
+conda env create -f environment.yml
+```
 
-# 
+Para activarlo:
 
-# Configuración principal:
+```bash
+conda activate tfm-flights-core
+```
 
-# 
+La aplicación dispone adicionalmente de sus propias dependencias:
 
-# ```text
+```text
+app/requirements.txt
+```
 
-# Modelo: Logistic Regression
+que pueden instalarse mediante:
 
-# Penalty: L2
+```bash
+pip install -r app/requirements.txt
+```
 
-# C: 0.1
+Para ejecutar la aplicación localmente:
 
-# Solver: saga
+```bash
+streamlit run app/app.py
+```
 
-# Tolerance: 0.01
+---
 
-# Class weight: balanced
+## Tecnologías utilizadas
 
-# Max iterations: 500
+El proyecto utiliza principalmente:
 
-# Random state: 42
+```text
+Python
+Pandas
+NumPy
+PyArrow
+Scikit-learn
+SciPy
+Joblib
+Matplotlib
+Streamlit
+Power BI
+Git
+GitHub
+```
 
-# ```
+El almacenamiento analítico se realiza principalmente mediante formato Parquet para facilitar el procesamiento eficiente de grandes volúmenes de información.
 
-# 
+---
 
-# Después del preprocesamiento, el espacio predictivo contiene:
+## Alcance del sistema
 
-# 
+El resultado del proyecto debe interpretarse como un prototipo académico de sistema de alerta temprana.
 
-# ```text
+Una alerta indica que las características programadas del vuelo producen una puntuación superior al umbral establecido por el modelo. No implica que el vuelo vaya necesariamente a experimentar un retraso.
 
-# 853 variables transformadas
+El sistema tampoco constituye actualmente una infraestructura productiva de predicción en tiempo real.
 
-# ```
+Su finalidad es demostrar de forma reproducible el ciclo completo de construcción, evaluación, interpretación y despliegue de un modelo predictivo aplicado a un problema real de gran volumen de datos.
 
-# 
+---
 
-# El desbalance de la variable objetivo se aborda mediante:
+## Estado del proyecto
 
-# 
+Las principales etapas analíticas se encuentran completadas:
 
-# ```text
+- ingesta y normalización;
+- análisis exploratorio;
+- preparación del dataset de modelado;
+- modelado predictivo;
+- selección temporal;
+- evaluación externa;
+- análisis operativo;
+- preparación para visualización en Power BI;
+- reproducibilidad de inferencia;
+- aplicación web de predicción;
+- despliegue mediante Streamlit Community Cloud.
 
-# class\_weight="balanced"
+La aplicación predictiva se encuentra disponible públicamente en:
 
-# ```
-
-# 
-
-# \---
-
-# 
-
-# \## Umbral de decisión
-
-# 
-
-# El sistema no utiliza directamente el umbral convencional de `0.5`.
-
-# 
-
-# El umbral definitivo fue seleccionado exclusivamente sobre la validación temporal de 2025:
-
-# 
-
-# ```text
-
-# 0.406588
-
-# ```
-
-# 
-
-# El criterio operativo prioriza alcanzar aproximadamente un `recall ≥ 0.80`, dado que el objetivo del sistema es identificar anticipadamente una proporción elevada de los vuelos que posteriormente experimentan retrasos.
-
-# 
-
-# La puntuación generada por el modelo se presenta como:
-
-# 
-
-# ```text
-
-# risk\_score
-
-# ```
-
-# 
-
-# Debe interpretarse como una puntuación relativa de riesgo y no como una probabilidad calibrada de retraso.
-
-# 
-
-# \---
-
-# 
-
-# \## Evaluación externa
-
-# 
-
-# La evaluación final se realizó sobre un período completamente posterior al utilizado durante el desarrollo:
-
-# 
-
-# ```text
-
-# Enero–mayo de 2026
-
-# ```
-
-# 
-
-# El test externo contiene:
-
-# 
-
-# ```text
-
-# 3,102,447 vuelos
-
-# ```
-
-# 
-
-# Resultados principales:
-
-# 
-
-# | Métrica | Resultado |
-
-# |---|---:|
-
-# | Accuracy | 0.4569 |
-
-# | Precision | 0.2527 |
-
-# | Recall | 0.7994 |
-
-# | F1 | 0.3840 |
-
-# | ROC-AUC | 0.6355 |
-
-# | Average Precision | 0.3053 |
-
-# | Tasa de alerta | 66.98 % |
-
-# 
-
-# Matriz de confusión:
-
-# 
-
-# | | Predicción negativa | Predicción positiva |
-
-# |---|---:|---:|
-
-# | Real negativo | 892,540 | 1,553,063 |
-
-# | Real positivo | 131,739 | 525,105 |
-
-# 
-
-# El sistema identifica aproximadamente el 80 % de los retrasos observados, aunque requiere generar alertas sobre aproximadamente el 67 % de los vuelos.
-
-# 
-
-# La elevada proporción de falsas alertas constituye una de las principales limitaciones del modelo y debe considerarse al interpretar su utilidad operativa.
-
-# 
-
-# \---
-
-# 
-
-# \## Aplicación web
-
-# 
-
-# El modelo definitivo se encuentra integrado en una aplicación desarrollada con Streamlit.
-
-# 
-
-# \[\*\*✈️ Probar el sistema predictivo\*\*](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
-
-# 
-
-# La aplicación proporciona dos modalidades.
-
-# 
-
-# \### Predicción individual
-
-# 
-
-# Permite introducir las características programadas de un vuelo y obtener:
-
-# 
-
-# ```text
-
-# risk\_score
-
-# alert
-
-# ```
-
-# 
-
-# \### Predicción masiva
-
-# 
-
-# Permite cargar múltiples observaciones mediante:
-
-# 
-
-# ```text
-
-# CSV
-
-# Parquet
-
-# ```
-
-# 
-
-# La aplicación proporciona una plantilla CSV compatible y permite descargar posteriormente los resultados generados.
-
-# 
-
-# Los detalles técnicos y las instrucciones para ejecutar la aplicación localmente se encuentran en:
-
-# 
-
-# \[app/README.md](app/README.md)
-
-# 
-
-# \---
-
-# 
-
-# \## Reproducibilidad de la inferencia
-
-# 
-
-# La aplicación utiliza directamente los artefactos persistidos del modelo definitivo:
-
-# 
-
-# ```text
-
-# app/artifacts/
-
-# ├── final\_categorical\_encoder\_2022\_2025.joblib
-
-# ├── final\_numerical\_scaler\_2022\_2025.joblib
-
-# ├── final\_logistic\_regression\_2022\_2025.joblib
-
-# └── final\_model\_configuration.json
-
-# ```
-
-# 
-
-# Esto permite ejecutar nuevas inferencias sin:
-
-# 
-
-# \- volver a entrenar el modelo;
-
-# \- repetir la selección de hiperparámetros;
-
-# \- recalcular el umbral;
-
-# \- disponer de los más de 32 millones de registros históricos.
-
-# 
-
-# La reproducibilidad del procedimiento de inferencia fue comprobada utilizando observaciones persistidas del test externo, obteniendo coincidencia del 100 % en las decisiones de alerta.
-
-# 
-
-# \---
-
-# 
-
-# \## Visualización y análisis operativo
-
-# 
-
-# Los resultados del modelo se analizan desde distintas perspectivas:
-
-# 
-
-# \- comportamiento global;
-
-# \- evolución temporal;
-
-# \- franjas horarias;
-
-# \- aerolíneas;
-
-# \- aeropuertos;
-
-# \- concentración de falsos positivos;
-
-# \- concentración de falsos negativos;
-
-# \- intensidad de las alertas.
-
-# 
-
-# El proyecto incluye además una capa analítica específicamente preparada para su explotación mediante Power BI.
-
-# 
-
-# La capa principal consolidada contiene:
-
-# 
-
-# ```text
-
-# 32,761,129 registros
-
-# 45 variables
-
-# ```
-
-# 
-
-# y se complementa con tablas de referencia, resultados predictivos y agregados analíticos.
-
-# 
-
-# \---
-
-# 
-
-# \## Estructura general del proyecto
-
-# 
-
-# ```text
-
-# TFM/
-
-# │
-
-# ├── app/
-
-# │   ├── app.py
-
-# │   ├── README.md
-
-# │   ├── requirements.txt
-
-# │   └── artifacts/
-
-# │
-
-# ├── config/
-
-# │
-
-# ├── data/
-
-# │   ├── raw/
-
-# │   ├── processed/
-
-# │   ├── rejected/
-
-# │   └── reference/
-
-# │
-
-# ├── docs/
-
-# │
-
-# ├── notebooks/
-
-# │
-
-# ├── results/
-
-# │
-
-# ├── src/
-
-# │
-
-# ├── environment.yml
-
-# ├── .gitignore
-
-# └── README.md
-
-# ```
-
-# 
-
-# Las carpetas de datos y resultados de gran volumen se mantienen fuera del control de versiones cuando corresponde.
-
-# 
-
-# Los artefactos mínimos necesarios para ejecutar la aplicación sí se incluyen en `app/artifacts/`.
-
-# 
-
-# \---
-
-# 
-
-# \## Flujo general del proyecto
-
-# 
-
-# ```text
-
-# Datos BTS
-
-# &#x20;   ↓
-
-# Ingesta y validación
-
-# &#x20;   ↓
-
-# Normalización y almacenamiento Parquet
-
-# &#x20;   ↓
-
-# Análisis exploratorio
-
-# &#x20;   ↓
-
-# Preparación del dataset de modelado
-
-# &#x20;   ↓
-
-# Desarrollo y comparación de modelos
-
-# &#x20;   ↓
-
-# Validación temporal 2025
-
-# &#x20;   ↓
-
-# Selección del modelo y umbral
-
-# &#x20;   ↓
-
-# Entrenamiento definitivo 2022–2025
-
-# &#x20;   ↓
-
-# Evaluación externa 2026
-
-# &#x20;   ↓
-
-# Análisis operativo
-
-# &#x20;   ↓
-
-# Visualización y Power BI
-
-# &#x20;   ↓
-
-# Reproducibilidad de inferencia
-
-# &#x20;   ↓
-
-# Aplicación Streamlit
-
-# ```
-
-# 
-
-# \---
-
-# 
-
-# \## Entorno de ejecución
-
-# 
-
-# El entorno principal del proyecto se gestiona mediante Conda:
-
-# 
-
-# ```bash
-
-# conda env create -f environment.yml
-
-# ```
-
-# 
-
-# Para activarlo:
-
-# 
-
-# ```bash
-
-# conda activate tfm-flights-core
-
-# ```
-
-# 
-
-# La aplicación dispone adicionalmente de sus propias dependencias:
-
-# 
-
-# ```text
-
-# app/requirements.txt
-
-# ```
-
-# 
-
-# que pueden instalarse mediante:
-
-# 
-
-# ```bash
-
-# pip install -r app/requirements.txt
-
-# ```
-
-# 
-
-# Para ejecutar la aplicación localmente:
-
-# 
-
-# ```bash
-
-# streamlit run app/app.py
-
-# ```
-
-# 
-
-# \---
-
-# 
-
-# \## Tecnologías utilizadas
-
-# 
-
-# El proyecto utiliza principalmente:
-
-# 
-
-# ```text
-
-# Python
-
-# Pandas
-
-# NumPy
-
-# PyArrow
-
-# Scikit-learn
-
-# SciPy
-
-# Joblib
-
-# Matplotlib
-
-# Streamlit
-
-# Power BI
-
-# Git
-
-# GitHub
-
-# ```
-
-# 
-
-# El almacenamiento analítico se realiza principalmente mediante formato Parquet para facilitar el procesamiento eficiente de grandes volúmenes de información.
-
-# 
-
-# \---
-
-# 
-
-# \## Alcance del sistema
-
-# 
-
-# El resultado del proyecto debe interpretarse como un prototipo académico de sistema de alerta temprana.
-
-# 
-
-# Una alerta indica que las características programadas del vuelo producen una puntuación superior al umbral establecido por el modelo. No implica que el vuelo vaya necesariamente a experimentar un retraso.
-
-# 
-
-# El sistema tampoco constituye actualmente una infraestructura productiva de predicción en tiempo real.
-
-# 
-
-# Su finalidad es demostrar de forma reproducible el ciclo completo de construcción, evaluación, interpretación y despliegue de un modelo predictivo aplicado a un problema real de gran volumen de datos.
-
-# 
-
-# \---
-
-# 
-
-# \## Estado del proyecto
-
-# 
-
-# Las principales etapas analíticas se encuentran completadas:
-
-# 
-
-# \- ingesta y normalización;
-
-# \- análisis exploratorio;
-
-# \- preparación del dataset de modelado;
-
-# \- modelado predictivo;
-
-# \- selección temporal;
-
-# \- evaluación externa;
-
-# \- análisis operativo;
-
-# \- preparación para visualización en Power BI;
-
-# \- reproducibilidad de inferencia;
-
-# \- aplicación web de predicción;
-
-# \- despliegue mediante Streamlit Community Cloud.
-
-# 
-
-# La aplicación predictiva se encuentra disponible públicamente en:
-
-# 
-
-# \[\*\*https://tfm-uflight-delay-analysis-ucm.streamlit.app\*\*](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
-
+[**https://tfm-uflight-delay-analysis-ucm.streamlit.app**](https://tfm-uflight-delay-analysis-ucm.streamlit.app)
