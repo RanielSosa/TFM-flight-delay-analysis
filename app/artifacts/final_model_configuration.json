@@ -1,0 +1,29 @@
+{
+    "model": "Logistic Regression",
+    "training_period": "2022-2025",
+    "external_test_period": "2026-01 to 2026-05",
+    "C": 0.1,
+    "tol": 0.01,
+    "solver": "saga",
+    "penalty": "l2",
+    "class_weight": "balanced",
+    "max_iter": 500,
+    "random_state": 42,
+    "decision_threshold": 0.4065878093242645,
+    "threshold_selection_period": "2025",
+    "categorical_features": [
+        "MONTH",
+        "DAY_OF_WEEK",
+        "MKT_UNIQUE_CARRIER",
+        "OP_UNIQUE_CARRIER",
+        "ORIGIN",
+        "DEST",
+        "DEP_TIME_BLK",
+        "ARR_TIME_BLK"
+    ],
+    "numerical_features": [
+        "CRS_ELAPSED_TIME",
+        "DISTANCE"
+    ],
+    "transformed_features": 853
+}

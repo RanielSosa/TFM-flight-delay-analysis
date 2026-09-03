@@ -19,6 +19,7 @@ models/
 *.pkl
 *.pickle
 *.joblib
+!app/artifacts/*.joblib
 *.h5
 *.keras
 

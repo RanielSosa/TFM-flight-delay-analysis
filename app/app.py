@@ -19,8 +19,7 @@ st.set_page_config(
 )
 
 app_path = Path(__file__).resolve().parent
-project_root = app_path.parent
-modeling_path = project_root / "results" / "modeling"
+modeling_path = app_path / "artifacts"
 
 encoder_path = modeling_path / "final_categorical_encoder_2022_2025.joblib"
 scaler_path = modeling_path / "final_numerical_scaler_2022_2025.joblib"
